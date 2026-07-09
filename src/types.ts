@@ -44,7 +44,7 @@ export interface Sensor {
   floor: string;
   location: string | null;
   battery_status: BatteryStatus;
-  battery_level?: number;
+  battery_level: number;
   network_status: NetworkStatus;
   health_status: HealthStatus;
   current_reading: number | null;
@@ -52,24 +52,49 @@ export interface Sensor {
   created_at: string;
 }
 
+export interface PressureReading {
+  id: string;
+  sensor_id: string;
+  floor: string;
+  pressure_value: number;
+  status: 'normal' | 'high' | 'low' | 'critical';
+  recorded_at: string;
+}
+
+export interface TankReading {
+  id: string;
+  sensor_id: string;
+  floor: string;
+  level_percentage: number;
+  capacity_liters: number;
+  remaining_liters: number;
+  status: 'normal' | 'low' | 'critical' | 'full';
+  recorded_at: string;
+}
+
 export interface Alert {
   id: string;
-  alert_type: AlertType;
   severity: AlertSeverity;
-  description: string;
-  floor: string | null;
+  alert_type: AlertType;
   sensor_id: string | null;
+  floor: string | null;
+  description: string;
   status: AlertStatus;
   created_at: string;
   resolved_at: string | null;
   resolved_by: string | null;
 }
 
-export interface SensorReading {
+export interface AuditLog {
   id: string;
-  sensor_id: string;
-  value: number;
-  recorded_at: string;
+  user_id: string | null;
+  user_email: string | null;
+  action: string;
+  event_type: EventType;
+  ip_address: string | null;
+  user_agent: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface SystemSettings {
@@ -85,31 +110,85 @@ export interface SystemSettings {
   emergency_mode: boolean;
   quota_usage_percent: number;
   updated_at: string;
+  // Tank configuration
   tank_capacity_liters: number;
   tank_height_meters: number;
   tank_min_level: number;
   tank_max_level: number;
   tank_warning_level: number;
-  measurement_unit: string;
+  measurement_unit: 'liters' | 'cubic_meters' | 'gallons';
+  // Display preferences
   timezone: string;
-  date_format: string;
-  time_format: string;
-  default_dashboard_view: string;
+  date_format: 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
+  time_format: '12h' | '24h';
+  default_dashboard_view: 'overview' | 'detailed' | 'compact';
+  // Security
   session_timeout_minutes: number;
   two_factor_enabled: boolean;
-  theme_color: string;
+  // Theme
+  theme_color: 'primary' | 'cyan' | 'emerald' | 'amber';
 }
 
-export interface AuditLog {
+export interface UserNotificationSettings {
   id: string;
-  event_type: EventType;
-  user_id: string | null;
-  user_email: string | null;
-  action: string;
-  details: string | null;
-  ip_address: string | null;
+  user_id: string;
+  email_alerts_enabled: boolean;
+  sms_alerts_enabled: boolean;
+  push_alerts_enabled: boolean;
+  critical_alerts_only: boolean;
+  notification_frequency: 'immediate' | 'hourly' | 'daily' | 'weekly';
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SensorCalibration {
+  id: string;
+  sensor_id: string;
+  calibration_date: string;
+  calibration_offset: number;
+  calibration_scale: number;
+  calibrated_by: string | null;
+  notes: string | null;
+  next_calibration_date: string | null;
   created_at: string;
 }
+
+export interface LoginActivity {
+  id: string;
+  user_id: string;
+  login_time: string;
+  logout_time: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  device_type: string | null;
+  location: string | null;
+  session_duration_seconds: number | null;
+}
+
+export interface FloorData {
+  floor: string;
+  pressure: number | null;
+  pressureStatus: 'normal' | 'high' | 'low' | 'critical' | 'offline';
+  tankLevel: number | null;
+  tankStatus: 'normal' | 'low' | 'critical' | 'full' | 'offline';
+  sensorStatus: 'online' | 'offline' | 'degraded';
+  lastUpdate: string;
+  sensorCount: number;
+  activeAlerts: number;
+}
+
+export const FLOORS = [
+  '1st Floor',
+  '2nd Floor',
+  '3rd Floor',
+  '4th Floor',
+  '5th Floor',
+  '6th Floor',
+  '7th Floor',
+];
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   administrator: 'Administrator',
@@ -117,12 +196,12 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   viewer: 'Viewer',
 };
 
-export const FLOORS = ['Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5', 'Basement', 'Rooftop'];
-
-export const ALERT_SEVERITY_COLORS: Record<AlertSeverity, string> = {
-  critical: 'error',
-  high: 'warning',
-  medium: 'warning',
-  low: 'info',
-  info: 'info',
+export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
+  low_pressure: 'Low Pressure',
+  high_pressure: 'High Pressure',
+  tank_critical: 'Tank Critical',
+  sensor_disconnect: 'Sensor Disconnect',
+  communication_failure: 'Communication Failure',
+  battery_low: 'Battery Low',
+  system: 'System',
 };
