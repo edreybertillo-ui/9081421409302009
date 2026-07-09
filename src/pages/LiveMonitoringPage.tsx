@@ -134,13 +134,20 @@ export function LiveMonitoringPage() {
   );
 }
 
-function SensorLiveCard({ sensor, settings }:interface Sensor {
+interface Sensor {
   id: string;
   sensor_name: string;
   network_status: string;
   water_level?: number;
   flow_rate?: number;
 }
+
+interface SensorLiveCardProps {
+  sensor: Sensor;
+  settings: any; // Replace 'any' with your Settings type if you have one
+}
+
+function SensorLiveCard({ sensor, settings }: SensorLiveCardProps) {
 
 interface SensorSettings {
   unit: string;
