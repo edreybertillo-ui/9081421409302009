@@ -142,6 +142,11 @@ interface Sensor {
   flow_rate?: number;
 }
 
+interface SensorSettings {
+  unit: string;
+  threshold: number;
+}
+
 interface SensorLiveCardProps {
   sensor: Sensor;
   settings: any; // Replace 'any' with your Settings type if you have one
@@ -149,10 +154,6 @@ interface SensorLiveCardProps {
 
 function SensorLiveCard({ sensor, settings }: SensorLiveCardProps) {
 
-interface SensorSettings {
-  unit: string;
-  threshold: number;
-}
 
 function SensorLiveCard({
   sensor,
