@@ -21,8 +21,11 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
 });
 
 useEffect(() => {
+ try {
   localStorage.setItem('chatbot_open', JSON.stringify(isOpen));
-}, [isOpen]);
+} catch (error) {
+  console.error('Unable to save chatbot state:', error);
+}
 
   const toggle = () => setIsOpen((prev) => !prev);
 
