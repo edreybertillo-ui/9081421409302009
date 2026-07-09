@@ -1,42 +1,61 @@
-export function WaterTank({ level, capacity, remaining }: { level: number; capacity: number; remaining: number }) {
-  const clampedLevel = Math.min(100, Math.max(0, level));
-  const status = level < 15 ? 'critical' : level < 30 ? 'low' : 'normal';
-  const colors: Record<string, { fill: string; text: string }> = {
-    normal: { fill: 'from-cyan-400 to-cyan-600', text: 'text-cyan-600 dark:text-cyan-400' },
-    low: { fill: 'from-warning-400 to-warning-600', text: 'text-warning-600 dark:text-warning-400' },
-    critical: { fill: 'from-error-400 to-error-600', text: 'text-error-600 dark:text-error-400' },
+export function WaterTank({
+  level,
+  capacity,
+  height = 200,
+  className = '',
+}: {
+  level: number;
+  capacity: number;
+  height?: number;
+  className?: string;
+}) {
+  const percentage = Math.min((level / capacity) * 100, 100);
+  const waterHeight = (percentage / 100) * (height - 20);
+
+  const getColor = () => {
+    if (percentage < 15) return 'fill-error-500';
+    if (percentage < 30) return 'fill-warning-500';
+    return 'fill-primary-500';
   };
-  const c = colors[status];
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative w-20 h-32 rounded-xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-900">
-        <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-b ${c.fill} transition-all duration-1000 ease-out`}
-          style={{ height: `${clampedLevel}%` }}
+    <div className={`relative ${className}`} style={{ width: 80, height }}>
+      {/* Tank outline */}
+      <svg viewBox="0 0 80 200" className="absolute inset-0 w-full h-full">
+        {/* Tank body */}
+        <rect
+          x="5"
+          y="10"
+          width="70"
+          height="180"
+          rx="8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-slate-300 dark:text-slate-700"
+        />
+        {/* Water */}
+        <rect
+          x="7"
+          y={200 - waterHeight - 10}
+          width="66"
+          height={waterHeight}
+          className={getColor()}
+          opacity="0.7"
+          rx="6"
         >
-          <div className="absolute top-0 left-0 right-0 h-2 bg-white/30 animate-wave" />
-          <div className="absolute top-1 left-0 right-0 h-1 bg-white/20 animate-wave" style={{ animationDelay: '0.5s' }} />
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-slate-900 dark:text-white mix-blend-luminosity drop-shadow-md">
-            {clampedLevel.toFixed(0)}%
-          </span>
-        </div>
-      </div>
-      <div className="space-y-1.5 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-slate-500 dark:text-slate-400">Capacity:</span>
-          <span className="font-medium text-slate-900 dark:text-slate-100">{capacity.toLocaleString()} L</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-slate-500 dark:text-slate-400">Remaining:</span>
-          <span className={`font-medium ${c.text}`}>{remaining.toLocaleString()} L</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-slate-500 dark:text-slate-400">Status:</span>
-          <span className={`font-medium capitalize ${c.text}`}>{status}</span>
-        </div>
+          <animate
+            attributeName="y"
+            values={`${200 - waterHeight - 10};${200 - waterHeight - 8};${200 - waterHeight - 10}`}
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </rect>
+      </svg>
+
+      {/* Level indicator */}
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-center">
+        <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{Math.round(percentage)}%</p>
       </div>
     </div>
   );

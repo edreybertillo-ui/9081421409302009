@@ -1,76 +1,79 @@
 import { supabase } from './supabase';
-import type { UserProfile, UserRole, AuditLog } from '../types';
+import type { UserRole } from '../types';
 
-const ALLOWED_DOMAIN = 'institution.edu';
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-export function isInstitutionalEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(`@${ALLOWED_DOMAIN}`);
+  if (error) throw error;
+  return data;
 }
 
-export async function logAuditEvent(
-  userEmail: string,
-  action: string,
-  eventType: AuditLog['event_type'],
-  details?: Record<string, unknown>
-): Promise<void> {
-  try {
-    await supabase.from('audit_logs').insert({
-      user_email: userEmail,
-      action,
-      event_type: eventType,
-      details: details ?? null,
-    });
-  } catch {
-    // Silent fail - audit logging should not block user actions
-  }
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
-export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
+export async function getCurrentUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+export async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('id', userId)
-    .maybeSingle();
+    .single();
 
-  if (error || !data) return null;
-  return data as UserProfile;
+  if (error) throw error;
+  return data;
 }
 
-export async function updateLastLogin(userId: string): Promise<void> {
-  await supabase
+export async function updateProfile(userId: string, updates: { full_name?: string; department?: string }) {
+  const { data, error } = await supabase
     .from('user_profiles')
-    .update({ last_login: new Date().toISOString() })
-    .eq('id', userId);
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
-export function canAccess(role: UserRole | undefined, required: UserRole[]): boolean {
-  if (!role) return false;
-  return required.includes(role);
+export async function getAllUsers() {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
 }
 
-export const ROLE_PERMISSIONS = {
-  administrator: {
-    canExport: true,
-    canManageUsers: true,
-    canChangeSettings: true,
-    canResolveAlerts: true,
-    canViewAnalytics: true,
-    canViewAuditLogs: true,
-  },
-  maintenance_staff: {
-    canExport: false,
-    canManageUsers: false,
-    canChangeSettings: false,
-    canResolveAlerts: true,
-    canViewAnalytics: true,
-    canViewAuditLogs: false,
-  },
-  viewer: {
-    canExport: false,
-    canManageUsers: false,
-    canChangeSettings: false,
-    canResolveAlerts: false,
-    canViewAnalytics: true,
-    canViewAuditLogs: false,
-  },
-} as const;
+export async function updateUserRole(userId: string, role: UserRole) {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .update({ role })
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function toggleUserStatus(userId: string, active: boolean) {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .update({ active })
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

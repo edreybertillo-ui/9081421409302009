@@ -1,36 +1,61 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
 interface ChatbotContextType {
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-  toggle: () => void;
+  messages: Message[];
+  isLoading: boolean;
+  sendMessage: (content: string) => Promise<void>;
+  clearMessages: () => void;
 }
 
 const ChatbotContext = createContext<ChatbotContextType | null>(null);
 
 export function ChatbotProvider({ children }: { children: ReactNode }) {
- const [isOpen, setIsOpen] = useState(() => {
-  const saved = localStorage.getItem('chatbot_open');
-  return saved ? JSON.parse(saved) : false;
-});
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-useEffect(() => {
- try {
-  localStorage.setItem('chatbot_open', JSON.stringify(isOpen));
-} catch (error) {
-  console.error('Unable to save chatbot state:', error);
-}
+  const sendMessage = useCallback(async (content: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content,
+      timestamp: new Date(),
+    };
 
-  const toggle = () => setIsOpen((prev) => !prev);
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      // Simulate AI response
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'I understand you asked about water monitoring. How can I help you further?',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+  }, []);
 
   return (
-    <ChatbotContext.Provider value={{ isOpen, setIsOpen, toggle }}>
+    <ChatbotContext.Provider value={{ messages, isLoading, sendMessage, clearMessages }}>
       {children}
     </ChatbotContext.Provider>
   );

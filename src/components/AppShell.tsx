@@ -36,16 +36,13 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
 
   const role = profile?.role;
 
-  // Sensor status summary
   const sensorStatus = useMemo(() => {
     const online = sensors.filter(s => s.network_status === 'online').length;
     const offline = sensors.filter(s => s.network_status === 'offline').length;
-    const degraded = sensors.filter(s => s.network_status === 'degraded').length;
     const criticalBattery = sensors.filter(s => s.battery_status === 'critical').length;
-    return { online, offline, degraded, criticalBattery, total: sensors.length };
+    return { online, offline, criticalBattery, total: sensors.length };
   }, [sensors]);
 
-  // Floor status summary
   const floorStatus = useMemo(() => {
     return FLOORS.map(floor => {
       const floorSensors = sensors.filter(s => s.floor === floor);
@@ -68,7 +65,6 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
 
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
-      {/* Sidebar - desktop */}
       <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0 left-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-30">
         <SidebarContent
           currentPage={currentPage}
@@ -79,7 +75,6 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
         />
       </aside>
 
-      {/* Sidebar - mobile */}
       {sidebarOpen && (
         <>
           <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -95,9 +90,7 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
         </>
       )}
 
-      {/* Main content */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        {/* Top bar */}
         <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             <div className="flex items-center gap-3">
@@ -124,7 +117,6 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
                 )}
               </button>
 
-              {/* User menu */}
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -168,16 +160,14 @@ export function AppShell({ currentPage, onNavigate, children }: { currentPage: P
             </div>
           </div>
 
-          {/* Emergency mode banner */}
           {false && (
             <div className="px-4 lg:px-8 py-2 bg-warning-50 dark:bg-warning-950/50 border-t border-warning-200 dark:border-warning-900 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-warning-600 dark:text-warning-400" />
-              <span className="text-sm text-warning-700 dark:text-warning-400">Emergency mode active — system running in read-only mode.</span>
+              <span className="text-sm text-warning-700 dark:text-warning-400">Emergency mode active</span>
             </div>
           )}
         </header>
 
-        {/* Page content */}
         <main className="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
           {children}
         </main>
@@ -196,7 +186,7 @@ function SidebarContent({
   currentPage: PageId;
   onNavigate: (p: PageId) => void;
   activeAlertCount: number;
-  sensorStatus: { online: number; offline: number; degraded: number; criticalBattery: number; total: number };
+  sensorStatus: { online: number; offline: number; criticalBattery: number; total: number };
   floorStatus: Array<{ floor: string; sensorCount: number; status: string; activeAlerts: number }>;
 }) {
   const { signOut } = useAuth();
@@ -205,7 +195,6 @@ function SidebarContent({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-slate-200 dark:border-slate-800">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-cyan-500 flex items-center justify-center">
           <Droplets className="w-5 h-5 text-white" />
@@ -216,7 +205,6 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* Nav items */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive = currentPage === item.id;
@@ -237,7 +225,6 @@ function SidebarContent({
           );
         })}
 
-        {/* Sensor Status Section */}
         <div className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={() => setShowSensors(!showSensors)}
@@ -276,14 +263,11 @@ function SidebarContent({
                   </span>
                 </div>
               )}
-              <p className="text-[10px] text-slate-400 px-1">
-                {sensorStatus.total} total sensors
-              </p>
+              <p className="text-[10px] text-slate-400 px-1">{sensorStatus.total} total sensors</p>
             </div>
           )}
         </div>
 
-        {/* Floor Status Section */}
         <div className="pt-2">
           <button
             onClick={() => setShowFloors(!showFloors)}
@@ -328,7 +312,6 @@ function SidebarContent({
         </div>
       </nav>
 
-      {/* Footer */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
           <Shield className="w-4 h-4 text-success-500" />
