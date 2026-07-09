@@ -9,7 +9,14 @@ interface ChatbotContextType {
 const ChatbotContext = createContext<ChatbotContextType | null>(null);
 
 export function ChatbotProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+ const [isOpen, setIsOpen] = useState(() => {
+  const saved = localStorage.getItem('chatbot_open');
+  return saved ? JSON.parse(saved) : false;
+});
+
+useEffect(() => {
+  localStorage.setItem('chatbot_open', JSON.stringify(isOpen));
+}, [isOpen]);
 
   const toggle = () => setIsOpen((prev) => !prev);
 
